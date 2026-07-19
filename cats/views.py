@@ -1,35 +1,46 @@
-from rest_framework.generics import ListAPIView,CreateAPIView,RetrieveAPIView,UpdateAPIView,DestroyAPIView,RetrieveUpdateDestroyAPIView
+from .models import Cats
+from .serializers import CatsSerializer
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 
-from .models import Cat
-from .serializers import CatSerializer
+@api_view(["GET"])
+def CatsListView(request):
+    serializer = CatsSerializer(Cats.objects.all(), many=True)
+    return Response(serializer.data)
 
 
-class CatListViewSet(ListAPIView):
-    queryset = Cat.objects.all()
-    serializer_class = CatSerializer
+@api_view(["GET"])
+def CatsDetailView(request, pk):
+    serializer = CatsSerializer(Cats.objects.get(pk=pk))
+    return Response(serializer.data)
 
 
-class CatCreateViewSet(CreateAPIView):
-    queryset = Cat.objects.all()
-    serializer_class = CatSerializer
+@api_view(["POST"])
+def CatsCreateView(request):
+    serializer = CatsSerializer(data=request.data)
+    serializer.is_valid()
+    serializer.save()
+    return Response(serializer.data)
 
 
-class CatRetrieveViewSet(RetrieveAPIView):
-    queryset = Cat.objects.all()
-    serializer_class = CatSerializer
+@api_view(["PUT", "PATCH"])
+def CatsUpdateView(request, pk):
+    cat = Cats.objects.get(pk=pk)
+
+    if request.method == "PUT":
+        serializer = CatsSerializer(cat, data=request.data)
+
+    if request.method == "PATCH":
+        serializer = CatsSerializer(cat, data=request.data, partial=True)
+
+    serializer.is_valid()
+    serializer.save()
+    return Response(serializer.data)
 
 
-class CatUpdateViewSet(UpdateAPIView):
-    queryset = Cat.objects.all()
-    serializer_class = CatSerializer
-
-
-class CatDestroyViewSet(DestroyAPIView):
-    queryset = Cat.objects.all()
-    serializer_class = CatSerializer
-
-
-class CatRetrieveUpdateDestroyViewSet(RetrieveUpdateDestroyAPIView):
-    queryset = Cat.objects.all()
-    serializer_class = CatSerializer
+@api_view(["DELETE"])
+def CatsDeleteView(request, pk):
+    cat = Cats.objects.get(pk=pk)
+    cat.delete()
+    return Response({"message": "Deleted"})
