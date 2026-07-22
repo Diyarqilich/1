@@ -1,46 +1,18 @@
-from .models import Cats
-from .serializers import CatsSerializer
-from rest_framework.decorators import api_view
+from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import RegisterSerializer
 
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
 
-@api_view(["GET"])
-def CatsListView(request):
-    serializer = CatsSerializer(Cats.objects.all(), many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-def CatsDetailView(request, pk):
-    serializer = CatsSerializer(Cats.objects.get(pk=pk))
-    return Response(serializer.data)
-
-
-@api_view(["POST"])
-def CatsCreateView(request):
-    serializer = CatsSerializer(data=request.data)
-    serializer.is_valid()
-    serializer.save()
-    return Response(serializer.data)
-
-
-@api_view(["PUT", "PATCH"])
-def CatsUpdateView(request, pk):
-    cat = Cats.objects.get(pk=pk)
-
-    if request.method == "PUT":
-        serializer = CatsSerializer(cat, data=request.data)
-
-    if request.method == "PATCH":
-        serializer = CatsSerializer(cat, data=request.data, partial=True)
-
-    serializer.is_valid()
-    serializer.save()
-    return Response(serializer.data)
-
-
-@api_view(["DELETE"])
-def CatsDeleteView(request, pk):
-    cat = Cats.objects.get(pk=pk)
-    cat.delete()
-    return Response({"message": "Deleted"})
+class LogoutView(APIView):
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"message": "Successfully logged out"}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception:
+            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)

@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'cats'
+    'cats',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +55,24 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'config.urls'
+
+from datetime import timedelta
+
+# Настройки DRF: по умолчанию все эндпоинты требуют JWT-авторизацию
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# Настройки SimpleJWT (сроки жизни токенов)
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),   # Время жизни Access токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Время жизни Refresh токена
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,               # Позволяет вносить токены в черный список при Logout
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
 
 TEMPLATES = [
     {
@@ -117,3 +138,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+AUTH_USER_MODEL = 'cats.CustomUser'
+
